@@ -11,7 +11,7 @@ Enemies and Valuables are multiplied in accordance with the map size changes, so
 The Game's general difficulty scaling will be accelerated for larger groups, but more subtly than other factors. Specifically the difficulty is multiplied by the square root of the player scaling factor.
 
 ## Other recommended mods
-I highly recommend all of these mods for large groups for a better experience!
-[UpgradeEveryRound](https://thunderstore.io/c/repo/p/Redfops/UpgradeEveryRound/) is another mod by me that allows each player to get one free upgrade every time you visit the shop.
-[MorePlayers](https://thunderstore.io/c/repo/p/zelofi/MorePlayers/) is a mod by Zelofi that allows you to break past the normal cap of 6 players.
+I highly recommend all of these mods for large groups for a better experience! <br>
+[UpgradeEveryRound](https://thunderstore.io/c/repo/p/Redfops/UpgradeEveryRound/) is another mod by me that allows each player to get one free upgrade every time you visit the shop. <br>
+[MorePlayers](https://thunderstore.io/c/repo/p/zelofi/MorePlayers/) is a mod by Zelofi that allows you to break past the normal cap of 6 players. <br>
 [MoreShopItems](https://thunderstore.io/c/repo/p/GalaxyMods/MoreShopItems/) is a mod by GalaxyMods that increases the number of available items in the shop.
