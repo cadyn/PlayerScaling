@@ -9,8 +9,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>PlayerScaling</AssemblyName>
-    <Product>My first plugin</Product>
-    <Version>1.0.1</Version>
+    <Product>Player Scaling</Product>
+    <Version>1.1.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <RestoreAdditionalProjectSources>
