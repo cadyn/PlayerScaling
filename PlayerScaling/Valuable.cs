@@ -15,21 +15,25 @@ namespace PlayerScaling
     {
         static void Prefix(ref int ___totalMaxAmount, ref int ___tinyMaxAmount, ref int ___smallMaxAmount, ref int ___mediumMaxAmount, ref int ___bigMaxAmount, ref int ___wideMaxAmount, ref int ___tallMaxAmount, ref int ___veryTallMaxAmount, ValuableDirector __instance)
         {
+            float difficulty = SemiFunc.RunGetDifficultyMultiplier();
 
-            float playerScalingAmount = Plugin.PlayerScaling(ScalingType.Valuable);
-            float difficultyUnscaled = (SemiFunc.RunGetDifficultyMultiplier() / Mathf.Sqrt(Plugin.PlayerScaling(ScalingType.Difficulty))) + Plugin.valuableScalingOffset.Value; //Little extra bump
+            int vanillaMapSize = Mathf.Min(10, 5 + RunManager.instance.levelsCompleted);
 
+            //Similar to enemies, we try to maintain density, but I'm not fucking around with trying to replicate these curves.
+            float mapScalingFactor = Plugin.curModuleAmount / (float)vanillaMapSize;
+            mapScalingFactor *= Plugin.valuableScalingMultiplier.Value;
+
+            ___totalMaxAmount = Mathf.RoundToInt(__instance.totalMaxAmountCurve.Evaluate(difficulty) * mapScalingFactor);
+            ___tinyMaxAmount = Mathf.RoundToInt(__instance.tinyMaxAmountCurve.Evaluate(difficulty) * mapScalingFactor);
+            ___smallMaxAmount = Mathf.RoundToInt(__instance.smallMaxAmountCurve.Evaluate(difficulty) * mapScalingFactor);
+            ___mediumMaxAmount = Mathf.RoundToInt(__instance.mediumMaxAmountCurve.Evaluate(difficulty) * mapScalingFactor);
+            ___bigMaxAmount = Mathf.RoundToInt(__instance.bigMaxAmountCurve.Evaluate(difficulty) * mapScalingFactor);
+            ___wideMaxAmount = Mathf.RoundToInt(__instance.wideMaxAmountCurve.Evaluate(difficulty) * mapScalingFactor);
+            ___tallMaxAmount = Mathf.RoundToInt(__instance.tallMaxAmountCurve.Evaluate(difficulty) * mapScalingFactor);
+            ___veryTallMaxAmount = Mathf.RoundToInt(__instance.veryTallMaxAmountCurve.Evaluate(difficulty) * mapScalingFactor);
 #if DEBUG
-        Plugin.Logger.LogInfo(string.Format("Valuable Volumes: {0,10}", UnityEngine.Object.FindObjectsOfType<ValuableVolume>(includeInactive: false).ToList().Count));
+            Plugin.Logger.LogInfo(string.Format("Valuable Volumes: {0,10}, difficulty: {1,10}, totalMaxAmount: {2,10}", UnityEngine.Object.FindObjectsOfType<ValuableVolume>(includeInactive: false).ToList().Count, difficulty, ___totalMaxAmount));
 #endif
-            ___totalMaxAmount = Mathf.RoundToInt(__instance.totalMaxAmountCurve.Evaluate(difficultyUnscaled) * playerScalingAmount);
-            ___tinyMaxAmount = Mathf.RoundToInt(__instance.tinyMaxAmountCurve.Evaluate(difficultyUnscaled) * playerScalingAmount);
-            ___smallMaxAmount = Mathf.RoundToInt(__instance.smallMaxAmountCurve.Evaluate(difficultyUnscaled) * playerScalingAmount);
-            ___mediumMaxAmount = Mathf.RoundToInt(__instance.mediumMaxAmountCurve.Evaluate(difficultyUnscaled) * playerScalingAmount);
-            ___bigMaxAmount = Mathf.RoundToInt(__instance.bigMaxAmountCurve.Evaluate(difficultyUnscaled) * playerScalingAmount);
-            ___wideMaxAmount = Mathf.RoundToInt(__instance.wideMaxAmountCurve.Evaluate(difficultyUnscaled) * playerScalingAmount);
-            ___tallMaxAmount = Mathf.RoundToInt(__instance.tallMaxAmountCurve.Evaluate(difficultyUnscaled) * playerScalingAmount);
-            ___veryTallMaxAmount = Mathf.RoundToInt(__instance.veryTallMaxAmountCurve.Evaluate(difficultyUnscaled) * playerScalingAmount);
         }
 #if DEBUG
     static void Postfix(ref int ___totalMaxAmount, ref int ___tinyMaxAmount, ref int ___smallMaxAmount, ref int ___mediumMaxAmount, ref int ___bigMaxAmount, ref int ___wideMaxAmount, ref int ___tallMaxAmount, ref int ___veryTallMaxAmount, ValuableDirector __instance)

@@ -16,12 +16,46 @@ namespace PlayerScaling
     {
         static void Prefix(ref int ___amountCurve1Value, ref int ___amountCurve2Value, ref int ___amountCurve3Value, EnemyDirector __instance)
         {
-            float playerScalingAmount = Plugin.PlayerScaling(ScalingType.Enemy);
-            float difficultyUnscaled = SemiFunc.RunGetDifficultyMultiplier() / Mathf.Sqrt(Plugin.PlayerScaling(ScalingType.Difficulty));
+            float effectiveLevelsCompleted = RunManager.instance.levelsCompleted * Plugin.enemyScalingMultiplier.Value;
 
-            ___amountCurve1Value = (int)(__instance.amountCurve1.Evaluate(difficultyUnscaled) * playerScalingAmount);
-            ___amountCurve2Value = (int)(__instance.amountCurve2.Evaluate(difficultyUnscaled) * playerScalingAmount);
-            ___amountCurve3Value = (int)(__instance.amountCurve3.Evaluate(difficultyUnscaled) * playerScalingAmount);
+            //I've decided I want to prioritize on expanding the "feel" of vanilla, so my equations prioritize maintaining and if enabled, extrapolating enemy density (i.e. how many enemies divided by map size)
+
+            float tier1VanillaCount = Mathf.FloorToInt(Mathf.Max(1, Mathf.Min(2, (effectiveLevelsCompleted + 4) / 5f)));
+
+            float tier2VanillaCount = Mathf.FloorToInt(Mathf.Max(0, Mathf.Min(2, effectiveLevelsCompleted / 3f)));
+
+            float tier3VanillaCount = Mathf.FloorToInt(Mathf.Max(1, Mathf.Min(2, (effectiveLevelsCompleted + 4) / 5f)));
+
+            float vanillaMapSize = Mathf.Min(10, 5 + effectiveLevelsCompleted);
+
+            float tier1Density = tier1VanillaCount / vanillaMapSize;
+            float tier2Density = tier2VanillaCount / vanillaMapSize;
+            float tier3Density = tier3VanillaCount / vanillaMapSize;
+            
+            float totalDensity = tier1Density + tier2Density + tier3Density;
+
+            float ratio = 1.0f;
+            //Configured to be less than default, scale down if necessary
+            if(totalDensity > Plugin.maxEnemyDensity.Value)
+            {
+                ratio = Plugin.maxEnemyDensity.Value / totalDensity;
+            }
+
+            //Configured to be more than default, continue scaling past vanilla
+            if(Plugin.maxEnemyDensity.Value > 0.8 && effectiveLevelsCompleted > 11)
+            {
+                float targetDensity = 0.25f + 0.05f * effectiveLevelsCompleted;
+                ratio = targetDensity / totalDensity;
+            }
+
+            tier1Density *= ratio;
+            tier2Density *= ratio;
+            tier3Density *= ratio;
+
+            //To get actual monster amounts, multiply the density we got by the number of map modules currently.
+            ___amountCurve1Value = Mathf.Max(1,Mathf.RoundToInt(tier1Density * Plugin.curModuleAmount));
+            ___amountCurve2Value = Mathf.Max(0, Mathf.RoundToInt(tier2Density * Plugin.curModuleAmount));
+            ___amountCurve3Value = Mathf.Max(1, Mathf.RoundToInt(tier3Density * Plugin.curModuleAmount));
         }
 #if DEBUG
     static void Postfix(ref int ___amountCurve1Value, ref int ___amountCurve2Value, ref int ___amountCurve3Value)

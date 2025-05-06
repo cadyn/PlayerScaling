@@ -1,10 +1,13 @@
 ﻿using HarmonyLib;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
+using Unity.VisualScripting.Antlr3.Runtime.Tree;
+using static UnityEngine.Rendering.VolumeComponent;
 
 namespace PlayerScaling
 {
@@ -19,49 +22,25 @@ namespace PlayerScaling
             float playerScalingAmount = Plugin.PlayerScaling(ScalingType.Map);
 
             ___ExtractionAmount = 0;
-
-            //Use old values in this case
-            if (playerScalingAmount == 1)
-            {
-                //Set to default values
-                if (___ModuleAmount > 4)
-                {
-                    ___ModuleAmount = Mathf.Min(5 + RunManager.instance.levelsCompleted, 10);
-                    if (___ModuleAmount >= 10)
-                    {
-                        ___ExtractionAmount = 3;
-                    }
-                    else if (___ModuleAmount >= 8)
-                    {
-                        ___ExtractionAmount = 2;
-                    }
-                    else if (___ModuleAmount >= 6)
-                    {
-                        ___ExtractionAmount = 1;
-                    }
-                    else
-                    {
-                        ___ExtractionAmount = 0;
-                    }
-                }
-                __instance.LevelHeight = 3;
-                __instance.LevelWidth = 3;
-                return;
-            }
-
-            __instance.LevelHeight = (int)(3f * Mathf.Sqrt(playerScalingAmount + 2));
-            __instance.LevelWidth = __instance.LevelHeight;
             if (___ModuleAmount > 4)
             {
-                ___ModuleAmount = Mathf.Min((int)(playerScalingAmount * (5 + RunManager.instance.levelsCompleted)), __instance.LevelHeight * __instance.LevelWidth);
+                int maxMapSize = Mathf.Min(Mathf.CeilToInt(Plugin.defaultMaxMapSize.Value * playerScalingAmount),2000); //Capped at 2000 for sanity sake
+                if (maxMapSize > 200)
+                {
+                    __instance.LevelHeight = 50;
+                    __instance.LevelWidth = 50;
+                }
+                ___ModuleAmount = Mathf.Min((int)(playerScalingAmount * (5 + RunManager.instance.levelsCompleted)), maxMapSize);
+                Plugin.curModuleAmount = ___ModuleAmount;
                 ___ExtractionAmount = (___ModuleAmount - 4) / 2;
             }
         }
 #if DEBUG
-    static void Postfix(LevelGenerator __instance, ref int ___ModuleAmount, ref int ___ExtractionAmount)
+    static void Postfix(LevelGenerator __instance, ref int ___ModuleAmount, ref int ___ExtractionAmount, ref int ___DeadEndAmount, ref GameObject ___DebugModule)
     {
-        Plugin.Logger.LogInfo(string.Format("LevelGeneration Completed, ModuleAmount: {0,10}, LevelHeight: {1,10}, LevelWidth: {2,10}", ___ModuleAmount, __instance.LevelHeight, __instance.LevelWidth));
-        Plugin.Logger.LogInfo(string.Format("ExtractionAmount: {0,10}", ___ExtractionAmount));
+        Plugin.Logger.LogInfo(string.Format("playerScalingAmount: {0,10}", Plugin.PlayerScaling(ScalingType.Map)));
+        Plugin.Logger.LogInfo(string.Format("ModuleAmount: {0,10}, LevelHeight: {1,10}, LevelWidth: {2,10}", ___ModuleAmount, __instance.LevelHeight, __instance.LevelWidth));
+        Plugin.Logger.LogInfo(string.Format("ExtractionAmount: {0,10}, DeadEndAmount: {1,10}, DebugModule: " + (___DebugModule ? "True" : "False"), ___ExtractionAmount, ___DeadEndAmount));
     }
 #endif
     }
