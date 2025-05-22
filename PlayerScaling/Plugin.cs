@@ -15,7 +15,7 @@ public class Plugin : BaseUnityPlugin
 {
     public const string modGUID = "dev.redfops.repo.playerscaling";
     public const string modName = "Player Scaling";
-    public const string modVersion = "1.2.0";
+    public const string modVersion = "1.2.1";
 
     public static int curModuleAmount = 5;
 

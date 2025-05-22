@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.2.1] - 2025-5-21
+
+### Fixed
+- Change in code made mod previously incompatible with beta branch. Fixed thanks to SolarAaron PR #9
+
 ## [1.2.0] - 2025-5-5
 
 ### Added
