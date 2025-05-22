@@ -23,7 +23,11 @@ namespace PlayerScaling
             float mapScalingFactor = Plugin.curModuleAmount / (float)vanillaMapSize;
             mapScalingFactor *= Plugin.valuableScalingMultiplier.Value;
 
-            ___totalMaxAmount = Mathf.RoundToInt(__instance.totalMaxAmountCurve.Evaluate(difficulty) * mapScalingFactor);
+            var totalMaxAmountCurveTraverse = Traverse.Create(__instance);
+            ___totalMaxAmount = Mathf.RoundToInt((totalMaxAmountCurveTraverse.Field("totalMaxAmountCurve").
+                                                                              FieldExists()? 
+                                                      totalMaxAmountCurveTraverse.Field<AnimationCurve>("totalMaxAmountCurve").Value.Evaluate(difficulty) : 
+                                                      ___totalMaxAmount) * mapScalingFactor);
             ___tinyMaxAmount = Mathf.RoundToInt(__instance.tinyMaxAmountCurve.Evaluate(difficulty) * mapScalingFactor);
             ___smallMaxAmount = Mathf.RoundToInt(__instance.smallMaxAmountCurve.Evaluate(difficulty) * mapScalingFactor);
             ___mediumMaxAmount = Mathf.RoundToInt(__instance.mediumMaxAmountCurve.Evaluate(difficulty) * mapScalingFactor);
