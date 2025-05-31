@@ -69,7 +69,6 @@ public class Plugin : BaseUnityPlugin
         harmony.PatchAll(typeof(TileGenerationPatch));
         harmony.PatchAll(typeof(DifficultyPatch));
         harmony.PatchAll(typeof(EnemyAmountPatch));
-        harmony.PatchAll(typeof(ValuablePatchTrans));
         harmony.PatchAll(typeof(ValuablePatch));
         Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
     }
