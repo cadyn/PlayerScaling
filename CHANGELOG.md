@@ -1,9 +1,17 @@
 # Changelog
 
+## [1.2.3] - 2025-6-1
+### Fixed
+- Valuable scaling now actually works, previously the dll was uploaded without the patch.
+
+## [1.2.2] - 2025-5-31
+### Fixed
+- Valuable scaling now works again in the beta thanks to [SolarAaron](https://github.com/SolarAaron) PR [#10](https://github.com/cadyn/PlayerScaling/pull/10)
+
 ## [1.2.1] - 2025-5-21
 
 ### Fixed
-- Change in code made mod previously incompatible with beta branch. Fixed thanks to SolarAaron PR #9
+- Change in code made mod previously incompatible with beta branch. Fixed thanks to [SolarAaron](https://github.com/SolarAaron) PR [#9](https://github.com/cadyn/PlayerScaling/pull/9)
 
 ## [1.2.0] - 2025-5-5
 
