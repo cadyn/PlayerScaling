@@ -13,94 +13,71 @@ namespace PlayerScaling
     [HarmonyPatch(nameof(ValuableDirector.SetupHost))]
     public static class ValuablePatch
     {
-        static void Prefix(ref int ___totalMaxAmount, ref int ___tinyMaxAmount, ref int ___smallMaxAmount, ref int ___mediumMaxAmount, ref int ___bigMaxAmount, ref int ___wideMaxAmount, ref int ___tallMaxAmount, ref int ___veryTallMaxAmount, ValuableDirector __instance)
+        private static Traverse TraverseCheckMaxAmount;
+        private static Traverse TraverseCheckMaxValue;
+        private static AnimationCurve TotalMaxAmountDefault;
+        private static AnimationCurve TotalMaxValueDefault;
+        private static AnimationCurve TinyDefault;
+        private static AnimationCurve SmallDefault;
+        private static AnimationCurve MediumDefault ;
+        private static AnimationCurve BigDefault;
+        private static AnimationCurve WideDefault;
+        private static AnimationCurve TallDefault;
+        private static AnimationCurve VeryTallDefault;
+        
+        static void Prefix(ref int ___totalMaxAmount, ValuableDirector __instance)
         {
-            float difficulty = SemiFunc.RunGetDifficultyMultiplier();
-
+            Plugin.Logger.LogInfo("Player scaling runs HERE");
+            var TraverseCheckMaxAmount = Traverse.Create(__instance).Field("totalMaxAmountCurve");
+            var TraverseCheckMaxValue = Traverse.Create(__instance).Field("totalMaxValueCurve");
+            
             int vanillaMapSize = Mathf.Min(10, 5 + RunManager.instance.levelsCompleted);
 
             //Similar to enemies, we try to maintain density, but I'm not fucking around with trying to replicate these curves.
             float mapScalingFactor = Plugin.curModuleAmount / (float)vanillaMapSize;
             mapScalingFactor *= Plugin.valuableScalingMultiplier.Value;
 
-            var totalMaxAmountCurveTraverse = Traverse.Create(__instance);
-            ___totalMaxAmount = Mathf.RoundToInt((totalMaxAmountCurveTraverse.Field("totalMaxAmountCurve").
-                                                                              FieldExists()? 
-                                                      totalMaxAmountCurveTraverse.Field<AnimationCurve>("totalMaxAmountCurve").Value.Evaluate(difficulty) : 
-                                                      ___totalMaxAmount) * mapScalingFactor);
-            ___tinyMaxAmount = Mathf.RoundToInt(__instance.tinyMaxAmountCurve.Evaluate(difficulty) * mapScalingFactor);
-            ___smallMaxAmount = Mathf.RoundToInt(__instance.smallMaxAmountCurve.Evaluate(difficulty) * mapScalingFactor);
-            ___mediumMaxAmount = Mathf.RoundToInt(__instance.mediumMaxAmountCurve.Evaluate(difficulty) * mapScalingFactor);
-            ___bigMaxAmount = Mathf.RoundToInt(__instance.bigMaxAmountCurve.Evaluate(difficulty) * mapScalingFactor);
-            ___wideMaxAmount = Mathf.RoundToInt(__instance.wideMaxAmountCurve.Evaluate(difficulty) * mapScalingFactor);
-            ___tallMaxAmount = Mathf.RoundToInt(__instance.tallMaxAmountCurve.Evaluate(difficulty) * mapScalingFactor);
-            ___veryTallMaxAmount = Mathf.RoundToInt(__instance.veryTallMaxAmountCurve.Evaluate(difficulty) * mapScalingFactor);
-#if DEBUG
-            Plugin.Logger.LogInfo(string.Format("Valuable Volumes: {0,10}, difficulty: {1,10}, totalMaxAmount: {2,10}", UnityEngine.Object.FindObjectsOfType<ValuableVolume>(includeInactive: false).ToList().Count, difficulty, ___totalMaxAmount));
-#endif
+            if(TraverseCheckMaxAmount.FieldExists())
+                TraverseCheckMaxAmount.SetValue(ReplaceCurve(ref TotalMaxAmountDefault, TraverseCheckMaxAmount.GetValue<AnimationCurve>(), value => value * mapScalingFactor));
+            else // in beta it's a hard coded value that never changes so just replace it -- this is also what breaks the transpiler as it looks for an instruction setting it
+                ___totalMaxAmount = (int) Math.Ceiling(___totalMaxAmount * mapScalingFactor);
+            
+            if(TraverseCheckMaxValue.FieldExists()) // this only exists in beta
+                TraverseCheckMaxValue.SetValue(ReplaceCurve(ref TotalMaxValueDefault, TraverseCheckMaxValue.GetValue<AnimationCurve>(), value => value * mapScalingFactor));
+            
+            __instance.tinyMaxAmountCurve = ReplaceCurve(ref TinyDefault, __instance.tinyMaxAmountCurve, value => value * mapScalingFactor);
+            __instance.smallMaxAmountCurve = ReplaceCurve(ref SmallDefault, __instance.smallMaxAmountCurve, value => value * mapScalingFactor);
+            __instance.mediumMaxAmountCurve = ReplaceCurve(ref MediumDefault, __instance.mediumMaxAmountCurve, value => value * mapScalingFactor);
+            __instance.bigMaxAmountCurve = ReplaceCurve(ref BigDefault, __instance.bigMaxAmountCurve, value => value * mapScalingFactor);
+            __instance.wideMaxAmountCurve = ReplaceCurve(ref WideDefault, __instance.wideMaxAmountCurve, value => value * mapScalingFactor);
+            __instance.tallMaxAmountCurve = ReplaceCurve(ref TallDefault, __instance.tallMaxAmountCurve, value => value * mapScalingFactor);
+            __instance.veryTallMaxAmountCurve = ReplaceCurve(ref VeryTallDefault, __instance.veryTallMaxAmountCurve, value => value * mapScalingFactor);
         }
+        
 #if DEBUG
-    static void Postfix(ref int ___totalMaxAmount, ref int ___tinyMaxAmount, ref int ___smallMaxAmount, ref int ___mediumMaxAmount, ref int ___bigMaxAmount, ref int ___wideMaxAmount, ref int ___tallMaxAmount, ref int ___veryTallMaxAmount, ValuableDirector __instance)
-    {
-        Plugin.Logger.LogInfo(string.Format("totalmax: {0,10}, tinymax: {1,10}, smallmax: {2,10}", ___totalMaxAmount, ___tinyMaxAmount, ___smallMaxAmount));
-        Plugin.Logger.LogInfo(string.Format("mediummax: {0,10}, bigmax: {1,10}, widemax: {2,10}", ___mediumMaxAmount, ___bigMaxAmount, ___wideMaxAmount));
-        Plugin.Logger.LogInfo(string.Format("tallmax: {0,10}, veryTallmax: {1,10}", ___tallMaxAmount, ___veryTallMaxAmount));
-    }
-#endif
-    }
-
-    //IEnumerator creates a weird seperate function for the sake of transpiling
-    [HarmonyPatch(typeof(ValuableDirector), nameof(ValuableDirector.SetupHost), MethodType.Enumerator)]
-    public static class ValuablePatchTrans
-    {
-        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        static void Postfix(ref int ___totalMaxAmount, ref int ___tinyMaxAmount, ref int ___smallMaxAmount, ref int ___mediumMaxAmount, ref int ___bigMaxAmount, ref int ___wideMaxAmount, ref int ___tallMaxAmount, ref int ___veryTallMaxAmount, ValuableDirector __instance)
         {
-            var startIndex = -1;
-            var endIndex = -1;
-
-            Label label = generator.DefineLabel();
-
-            var codes = new List<CodeInstruction>(instructions);
-            for (var i = 0; i < codes.Count; i++)
-            {
-
-                if (codes[i].StoresField(typeof(ValuableDirector).GetField("totalMaxAmount", BindingFlags.NonPublic | BindingFlags.Instance)))
-                {
-                    for (int j = i; j > 0; j--)
-                    {
-                        if (codes[j].opcode == OpCodes.Ldc_R4)
-                        {
-                            startIndex = j + 2;
-                        }
-                        if (codes[j].opcode == OpCodes.Brfalse)
-                        {
-                            codes[j].operand = label;
-                            break;
-                        }
-                    }
-                    continue;
-                }
-
-                if (codes[i].StoresField(typeof(ValuableDirector).GetField("veryTallMaxAmount", BindingFlags.NonPublic | BindingFlags.Instance)))
-                {
-                    endIndex = i + 1;
-                    codes[i + 1].labels.Add(label);
-
-                    break;
-                }
+            Plugin.Logger.LogInfo(string.Format("totalmax: {0,10}, tinymax: {1,10}, smallmax: {2,10}", ___totalMaxAmount, ___tinyMaxAmount, ___smallMaxAmount));
+            Plugin.Logger.LogInfo(string.Format("mediummax: {0,10}, bigmax: {1,10}, widemax: {2,10}", ___mediumMaxAmount, ___bigMaxAmount, ___wideMaxAmount));
+            Plugin.Logger.LogInfo(string.Format("tallmax: {0,10}, veryTallmax: {1,10}", ___tallMaxAmount, ___veryTallMaxAmount));
+        }
+#endif
+        
+        private static AnimationCurve ReplaceCurve(ref AnimationCurve target, AnimationCurve source, Func<float, float> calculate) {
+            // the compiler will warn of unintended reference comparison; it is completely intended
+            if (target == source) return target;
+            
+            target = new AnimationCurve();
+            
+            target.CopyFrom(source); // duplicate curve parameters
+            target.ClearKeys(); // but replace with the scaled keyframes
+            
+            foreach (var key in source.GetKeys()) {
+                var newKey = key with { value = calculate.Invoke(key.value)};
+                target.AddKey(newKey);
             }
 
-            if (startIndex > -1 && endIndex > -1)
-            {
-                codes.RemoveRange(startIndex, endIndex - startIndex);
-            }
-            else
-            {
-                Plugin.Logger.LogError("Cannot find <Stdfld totalMaxAmount> in ValuableDirector.SetupHost");
-            }
-
-
-            return codes.AsEnumerable();
+            return target;
         }
     }
 }
