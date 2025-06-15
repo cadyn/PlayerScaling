@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using Newtonsoft.Json;
 using UnityEngine;
 using Unity.VisualScripting.Antlr3.Runtime.Tree;
 using static UnityEngine.Rendering.VolumeComponent;
@@ -17,7 +18,7 @@ namespace PlayerScaling
     [HarmonyPatch("TileGeneration")]
     public static class TileGenerationPatch
     {
-        static void Prefix(LevelGenerator __instance, ref int ___ModuleAmount, ref int ___ExtractionAmount)
+        static void Prefix(LevelGenerator __instance, ref int ___ModuleAmount, ref int ___ExtractionAmount, ref float ___DebugLevelSize)
         {
             float playerScalingAmount = Plugin.PlayerScaling(ScalingType.Map);
 
@@ -25,13 +26,15 @@ namespace PlayerScaling
             if (___ModuleAmount > 4)
             {
                 int maxMapSize = Mathf.Min(Mathf.CeilToInt(Plugin.defaultMaxMapSize.Value * playerScalingAmount),2000); //Capped at 2000 for sanity sake
-                if (maxMapSize > 200)
+                if (maxMapSize > 200) // ignored in beta
                 {
                     __instance.LevelHeight = 50;
                     __instance.LevelWidth = 50;
                 }
+                // no change needed here
                 ___ModuleAmount = Mathf.Min((int)(playerScalingAmount * (5 + RunManager.instance.levelsCompleted)), maxMapSize);
                 Plugin.curModuleAmount = ___ModuleAmount;
+                ___DebugLevelSize = playerScalingAmount; // in beta level height and level width get overwritten by a constant, multiplied by this value
                 ___ExtractionAmount = (___ModuleAmount - 4) / 2;
             }
         }

@@ -1,4 +1,5 @@
-﻿using BepInEx;
+﻿using System;
+using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -7,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
+using static HarmonyLib.AccessTools;
 
 namespace PlayerScaling;
 
@@ -36,7 +38,7 @@ public class Plugin : BaseUnityPlugin
     public static ConfigEntry<int> numPlayersStartScaling;
     public static ConfigEntry<float> playerDivisor;
 
-    
+    public delegate float DifficultyDelegate();
 
     internal static new ManualLogSource Logger;
     private readonly Harmony harmony = new Harmony(modGUID);
@@ -64,8 +66,7 @@ public class Plugin : BaseUnityPlugin
         difficultyScalingEnabled = Config.Bind("Difficulty Scaling", "Difficulty Scaling Enabled", true, new ConfigDescription("Whether or not the difficulty will be scaled to the number of players"));
         difficultyScalingMultiplier = Config.Bind("Difficulty Scaling", "Difficulty Scaling Multiplier", 1f, new ConfigDescription("Multiplies the difficulty by this number", new AcceptableValueRange<float>(0.3f, 4f)));
         difficultyScalingOffset = Config.Bind("Difficulty Scaling", "Difficulty Scaling Offset", 0.085f, new ConfigDescription("Offsets the general difficulty", new AcceptableValueRange<float>(0f, 1f)));
-
-        harmony.PatchAll(typeof(TileGenerationPatchTrans));
+        
         harmony.PatchAll(typeof(TileGenerationPatch));
         harmony.PatchAll(typeof(DifficultyPatch));
         harmony.PatchAll(typeof(EnemyAmountPatch));
@@ -84,6 +85,22 @@ public class Plugin : BaseUnityPlugin
             ScalingType.Difficulty => difficultyScalingMultiplier.Value * (difficultyScalingEnabled.Value ? PlayerScaling(ScalingType.Global) : 1),
             _ => globalScalingMultiplier.Value * (((GameDirector.instance.PlayerList.Count < numPlayersStartScaling.Value) || downScalingEnabled.Value) ? 1 : Mathf.Max(GameDirector.instance.PlayerList.Count / playerDivisor.Value, downScalingMin.Value)),
         };
+    }
+    
+    public static List<MethodBase> GetNumberedMethodInfos(Type source, string expectedBaseName, Type[] parameters, int checkMax, int checkMin = 0) {
+        var methods = new List<MethodBase>();
+
+        if (Traverse.Create(source).Method(expectedBaseName, parameters).MethodExists()) {
+            methods.Add(Method(source, expectedBaseName, parameters));
+        }
+        
+        for (var i = checkMin; i < checkMax; i++) {
+            if (Traverse.Create(source).Method(expectedBaseName + i, parameters).MethodExists()) {
+                methods.Add(Method(source, expectedBaseName + i, parameters));
+            }
+        }
+        
+        return methods;
     }
 }
 
