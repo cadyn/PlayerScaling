@@ -66,7 +66,8 @@ public class Plugin : BaseUnityPlugin
         difficultyScalingEnabled = Config.Bind("Difficulty Scaling", "Difficulty Scaling Enabled", true, new ConfigDescription("Whether or not the difficulty will be scaled to the number of players"));
         difficultyScalingMultiplier = Config.Bind("Difficulty Scaling", "Difficulty Scaling Multiplier", 1f, new ConfigDescription("Multiplies the difficulty by this number", new AcceptableValueRange<float>(0.3f, 4f)));
         difficultyScalingOffset = Config.Bind("Difficulty Scaling", "Difficulty Scaling Offset", 0.085f, new ConfigDescription("Offsets the general difficulty", new AcceptableValueRange<float>(0f, 1f)));
-        
+
+        harmony.PatchAll(typeof(TileGenerationPatchTrans));
         harmony.PatchAll(typeof(TileGenerationPatch));
         harmony.PatchAll(typeof(DifficultyPatch));
         harmony.PatchAll(typeof(EnemyAmountPatch));

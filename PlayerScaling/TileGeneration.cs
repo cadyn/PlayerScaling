@@ -82,6 +82,7 @@ namespace PlayerScaling
                     }
                     else
                     {
+                        if (codes[i - 1].opcode == OpCodes.Add) continue;
                         endIndex = i + 1;
                         break;
                     }
@@ -150,7 +151,7 @@ namespace PlayerScaling
             {
                 if (codes[i].LoadsField(typeof(LevelGenerator).GetField("ModuleAmount", BindingFlags.NonPublic | BindingFlags.Instance)) && !found)
                 {
-                    if (codes[i + 1].opcode == OpCodes.Ldc_I4_S && Convert.ToInt32(codes[i + 1].operand) == 10 && codes[i + 2].opcode == OpCodes.Blt)
+                    if (codes[i + 1].opcode == OpCodes.Ldc_I4_S && (Convert.ToInt32(codes[i + 1].operand) == 10 || Convert.ToInt32(codes[i + 1].operand) == 15) && codes[i + 2].opcode == OpCodes.Blt)
                     {
                         found = true;
                         startIndex = i - 1;
