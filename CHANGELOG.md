@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.2.4] - 2025-6-15
+### Fixed
+- Now compatible with latest beta version thanks to [SolarAaron](https://github.com/SolarAaron) PR [#11](https://github.com/cadyn/PlayerScaling/pull/11)
+
 ## [1.2.3] - 2025-6-1
 ### Fixed
 - Valuable scaling now actually works, previously the dll was uploaded without the patch.
